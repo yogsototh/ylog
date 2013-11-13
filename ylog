@@ -1,0 +1,72 @@
+#!/usr/bin/env zsh
+# command line note taking system by directories
+
+err(){print -- $* >&2; exit 1}
+log(){print -- $*}
+app="${0:t}"
+(($#==0)) && err "$app is a command line note taking tool
+
+    $app init           -- init a log file
+    $app show           -- show all notes
+    $app edit           -- open in editor (use EDITOR environment variable)
+    $app todo some text -- prepent a todo box ([ ]) before the note
+    $app some text      -- add the note to the log file"
+
+logfilename=".log"
+
+# return the subdir of the project
+subdir(){
+    local logfiledir=$PWD
+    subdir=""
+    while [[ ! -e $logfiledir/$logfilename ]]; do
+        [[ $logfiledir = / ]] && err "Couldn't find a $logfilename file"
+        if [[ $subdir = "" ]]; then
+            subdir="${logfiledir:t}"
+        else
+            subdir="${logfiledir:t}/$subdir"
+        fi
+        logfiledir="${logfiledir:h}"
+    done
+    print -- $subdir
+}
+
+# return the logfile
+logfile(){
+    local logfiledir=$PWD
+    while [[ ! -e $logfiledir/$logfilename ]]; do
+        [[ $logfiledir = / ]] && err "Couldn't find a $logfilename file"
+        logfiledir="${logfiledir:h}"
+    done
+    print -- $logfiledir/$logfilename
+}
+
+checkLogfile(){ logfile }
+
+addMessage(){
+    checkLogfile
+    local logpath=$(logfile)
+    local subdir=$(subdir)
+    {
+        print -n "[$(date +"%d-%m-%Y")] "
+        [[ $subdir != "" ]] && print -n "($subdir) "
+        print -- $*
+    } >> $logpath
+}
+
+
+case $1 in
+    init) touch .log;;
+    show) checkLogfile ; cat $(logfile);;
+    edit) checkLogfile
+          [[ $EDITOR = "" ]] && EDITOR="vi"
+          $EDITOR $(logfile);;
+    todo) shift; message="[ ] $*"; addMessage $message ;;
+    reset)  checkLogfile
+            print -n -- "Do you really want to remove all your notes? (y/n): "
+            read answer
+            case ${answer:l} in
+            y|yes) echo > $(logfile);print "log file emptied";;
+            *) exit 0
+            esac ;;
+    *) addMessage $* ;;
+esac
