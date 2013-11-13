@@ -18,3 +18,25 @@ Example:
 [13-11-2013] (another/subdir) There is another foo.hs here
 > ylog edit <-- manually edit the file ; use EDITOR environment variable
 ~~~
+
+Of course you could always add aliases to make it easier to use:
+
+~~~
+> alias n=ylog
+> alias t="ylog todo"
+~~~
+
+## Install
+
+~~~
+git clone https://github.com/yogsototh/ylog.git
+~~~
+
+Then copy the `ylog` file into one of the directory of your $PATH.
+To get the list simply type:
+
+~~~
+> echo $PATH | sed 's/:/\n/g'
+~~~
+
+It uses zsh which is pretty common in UNIX world.
